@@ -1,0 +1,41 @@
+{
+  "name": "typescript-template",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "lint": "npx eslint .",
+    "format": "npx eslint . --fix",
+    "build": "npm run format && npx tsc",
+    "start": "npm run build && node --env-file=.env dist/index.js",
+    "format:auto": "concurrently -r -c \"auto\" --restart-after 5000 --restart-tries -1 \"npm run format & npm run format:auto\"",
+    "dev": "concurrently -c \"auto\" --restart-after 5000 --restart-tries -1 \"npm run format:auto\" \"npx tsc --watch\" \"node --watch dist/index.js\""
+  },
+  "engines": {
+    "node": ">= 20.16.0"
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "@phoenix35/eslint-config": "^1.8.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.5.0",
+    "@types/pg": "^8.11.10",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.9.1",
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.2.0"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "pg": "^8.13.1",
+    "zod": "^3.23.8"
+  }
+}
