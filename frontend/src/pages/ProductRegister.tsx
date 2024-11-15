@@ -2,16 +2,16 @@ import { Box, Button, Divider, Paper, Typography } from "@mui/material";
 import { Menu } from "../components/Menu";
 import { BootstrapInput } from "../components/BootstrapInput/BootstrapInput";
 import { useForm } from "react-hook-form";
-import { RegisterClientData, registerClientSchema } from "../schemas/client";
+import { RegisterProductData, registerProductSchema } from "../schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-export function ClientRegister(): JSX.Element {
+export function ProductRegister(): JSX.Element {
     const { 
         register,
         handleSubmit,
         formState: { errors }
-    } = useForm<RegisterClientData>({
-        resolver: zodResolver(registerClientSchema)
+    } = useForm<RegisterProductData>({
+        resolver: zodResolver(registerProductSchema)
     });
 
     return (
@@ -33,7 +33,7 @@ export function ClientRegister(): JSX.Element {
             }}>
                 <Paper>
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', padding: 1 }}>
-                        <Typography variant="h6">Cadastrar cliente</Typography>
+                        <Typography variant="h6">Cadastrar produto</Typography>
                     </Box>
 
                     <Divider />
@@ -67,20 +67,38 @@ export function ClientRegister(): JSX.Element {
                             }}
                         />
                         <BootstrapInput
-                            id="Telefone"
+                            id="UnitPrice"
                             size={{
                                 width: 450,
                                 height: 40
                             }}
                             isRequired={true}
                             text={{
-                                label: "Telefone",
-                                error: errors.phone?.message
+                                label: "Preço unitário",
+                                error: errors.unitPrice?.message
                             }}
                             props={{
                                 input: {
-                                    type: "tel",
-                                    ...register("phone")
+                                    type: "text",
+                                    ...register("unitPrice")
+                                }
+                            }}
+                        />
+                        <BootstrapInput
+                            id="AmountAvailable"
+                            size={{
+                                width: 450,
+                                height: 40
+                            }}
+                            isRequired={true}
+                            text={{
+                                label: "Quantidade disponível",
+                                error: errors.amountAvailable?.message
+                            }}
+                            props={{
+                                input: {
+                                    type: "number",
+                                    ...register("amountAvailable")
                                 }
                             }}
                         />

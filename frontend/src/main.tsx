@@ -6,6 +6,7 @@ import { ClientRegister } from './pages/ClientRegister.tsx';
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 
 import './assets/globals.css';
+import { ProductRegister } from './pages/ProductRegister.tsx';
 
 const darkTheme = createTheme({
   palette: {
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: "/register/client",
     element: <ClientRegister />
+  },
+  {
+    path: "/register/product",
+    element: <ProductRegister />
   }
 ]);
 
