@@ -1,6 +1,7 @@
+// modelo da venda
 export interface SaleModel {
+    code: number,
     clientCode: number,
-    productCode: number,
-    amount: number
+    paymentMethod: number,
+    price: number
 }
-

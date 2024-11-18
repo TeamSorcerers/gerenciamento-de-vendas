@@ -7,5 +7,5 @@ export interface ClientModel {
     // Telefone
     phone: string,
     // Total de compras
-    totalPurchase: number
+    // totalPurchase: number
 }

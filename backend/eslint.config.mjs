@@ -23,6 +23,8 @@ export default tseslint.config(
       // statement beside the control
       "@stylistic/js/nonblock-statement-body-position": [ "error", "below" ],
       "no-shadow": "off",
+      "no-magic-numbers": "off",
+      camelcase: "off",
     },
   },
 );

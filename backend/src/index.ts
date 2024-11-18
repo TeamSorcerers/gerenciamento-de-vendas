@@ -1,15 +1,17 @@
-import client from "./controller/client.js";
-// const server = express();
+import express from "express";
+import cors from "cors";
 
-// server.use(express.json());
+import { register } from "./router/register.js";
 
-// server.listen(process.env.PORT_SERVER, () => console.log("pai ta on"));
+const server = express();
 
-// await client.create({
-//   name: "Lucas",
-//   phone: "40028922",
-//   totalPurchase: 3,
-// });
+server.use(express.json());
+server.use(express.urlencoded());
+server.use(cors({
+  origin: "*",
+  allowedHeaders: "*",
+}));
 
+server.use(register);
 
-console.log(await client.search("Lucas"));
+server.listen(process.env.PORT_SERVER, () => console.log("pai ta on"));

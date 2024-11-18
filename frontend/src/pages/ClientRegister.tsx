@@ -1,9 +1,11 @@
-import { Box, Button, Divider, Paper, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import { Menu } from "../components/Menu";
 import { BootstrapInput } from "../components/BootstrapInput/BootstrapInput";
 import { useForm } from "react-hook-form";
 import { RegisterClientData, registerClientSchema } from "../schemas/client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { GATEWAY_REGISTER_CLIENT } from "../gateways";
 
 export function ClientRegister(): JSX.Element {
     const { 
@@ -13,6 +15,56 @@ export function ClientRegister(): JSX.Element {
     } = useForm<RegisterClientData>({
         resolver: zodResolver(registerClientSchema)
     });
+
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState<'success'|'error'>("error");
+
+    const [isSubmitingRegister, setIsSubmitingRegister] = useState(false);
+
+    const onSubmit = async (data: RegisterClientData) => {
+        if (isSubmitingRegister) {
+            return;
+        }
+
+        setShowAlert(false);
+        setIsSubmitingRegister(true);
+
+        try {
+            const request = await fetch(GATEWAY_REGISTER_CLIENT, {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const response = await request.json();
+            
+            if (response.ok) {
+                setAlertType("success");
+                setAlertMessage("O cliente foi registrado com sucesso.");
+                setShowAlert(true);
+            } else {
+                setAlertType("error");
+                
+                if (response.error.type === "internal") {
+                    throw response.error.message;
+                } else if (response.error.type === "invalid-data") {
+                    setAlertMessage("Os dados enviados são inválidos, tente novamente.");
+                    setShowAlert(true);
+                }
+            }
+
+        } catch (error) {
+            console.error(error);
+            setAlertType("error");
+            setAlertMessage("Não foi possível proceder devido a um erro interno.");
+            setShowAlert(true);
+        }
+
+        setIsSubmitingRegister(false);
+    }
 
     return (
         <div
@@ -39,7 +91,7 @@ export function ClientRegister(): JSX.Element {
                     <Divider />
                     
                     <form
-                        onSubmit={handleSubmit(console.log)}
+                        onSubmit={handleSubmit(onSubmit)}
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -84,6 +136,10 @@ export function ClientRegister(): JSX.Element {
                                 }
                             }}
                         />
+                        {
+                            showAlert
+                            && <Alert severity={alertType}>{alertMessage}</Alert>
+                        }
                         <Button
                             type="submit"
                             sx={{
@@ -91,8 +147,13 @@ export function ClientRegister(): JSX.Element {
                                 height: 40
                             }}
                             variant="outlined"
+                            disabled={isSubmitingRegister}
                         >
-                            Cadastrar    
+                            {
+                                isSubmitingRegister
+                                ? <CircularProgress size={25} />
+                                : "Cadastrar"
+                            }    
                         </Button>
                     </form>
                 </Paper>
