@@ -1,16 +1,18 @@
 import { Alert, Box, Button, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import { Menu } from "../components/Menu";
-import { BootstrapInput } from "../components/BootstrapInput/BootstrapInput";
+import { BootstrapInput } from "../components/Bootstrap/BootstrapInput";
 import { useForm } from "react-hook-form";
 import { RegisterClientData, registerClientSchema } from "../schemas/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { GATEWAY_REGISTER_CLIENT } from "../gateways";
+import { RegisterResponse } from "../model/responses";
 
 export function ClientRegister(): JSX.Element {
     const { 
         register,
         handleSubmit,
+        setError,
         formState: { errors }
     } = useForm<RegisterClientData>({
         resolver: zodResolver(registerClientSchema)
@@ -31,7 +33,7 @@ export function ClientRegister(): JSX.Element {
         setIsSubmitingRegister(true);
 
         try {
-            const request = await fetch(GATEWAY_REGISTER_CLIENT, {
+            const response = await fetch(GATEWAY_REGISTER_CLIENT, {
                 method: "POST",
                 body: JSON.stringify(data),
                 headers: {
@@ -39,20 +41,27 @@ export function ClientRegister(): JSX.Element {
                 }
             });
 
-            const response = await request.json();
+            const responseData = await response.json() as RegisterResponse;
             
-            if (response.ok) {
+            if (responseData.ok) {
                 setAlertType("success");
                 setAlertMessage("O cliente foi registrado com sucesso.");
                 setShowAlert(true);
             } else {
                 setAlertType("error");
                 
-                if (response.error.type === "internal") {
-                    throw response.error.message;
-                } else if (response.error.type === "invalid-data") {
+                if (responseData.error.type === "internal") {
+                    throw responseData.error.message;
+                } else if (responseData.error.type === "invalid-data") {
                     setAlertMessage("Os dados enviados são inválidos, tente novamente.");
                     setShowAlert(true);
+                } else if (responseData.error.type === "validation") {
+                    for (const error of responseData.error.info) {
+                        setError(error.path[0] as keyof RegisterClientData, {
+                            message: error.message,
+                            type: error.code
+                        });
+                    }
                 }
             }
 

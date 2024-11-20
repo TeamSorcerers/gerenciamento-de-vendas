@@ -9,6 +9,12 @@ export default {
     ]);
   },
 
+  async getAll (): Promise<Omit<ClientModel, "phone">[]> {
+    const result = await pool.query("SELECT code, name FROM client");
+
+    return result.rows;
+  },
+
   async search (name: string): Promise<ClientModel | null> {
     try {
       const result = await pool.query("SELECT * FROM client WHERE name = $1", [ name ]);

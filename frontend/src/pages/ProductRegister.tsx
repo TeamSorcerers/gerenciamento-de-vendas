@@ -1,19 +1,80 @@
-import { Box, Button, Divider, Paper, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import { Menu } from "../components/Menu";
-import { BootstrapInput } from "../components/BootstrapInput/BootstrapInput";
+import { BootstrapInput } from "../components/Bootstrap/BootstrapInput";
 import { useForm } from "react-hook-form";
 import { RegisterProductData, registerProductSchema } from "../schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { GATEWAY_REGISTER_PRODUCT } from "../gateways";
+import { RegisterResponse } from "../model/responses";
 
 export function ProductRegister(): JSX.Element {
     const { 
         register,
         handleSubmit,
+        setError,
         formState: { errors }
     } = useForm<RegisterProductData>({
         resolver: zodResolver(registerProductSchema)
     });
 
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
+    const [alertType, setAlertType] = useState<'success'|'error'>("error");
+
+    const [isSubmitingRegister, setIsSubmitingRegister] = useState(false);
+
+    const onSubmit = async (data: RegisterProductData) => {
+        if (isSubmitingRegister) {
+            return;
+        }
+
+        setShowAlert(false);
+        setIsSubmitingRegister(true);
+
+        try {
+            const response = await fetch(GATEWAY_REGISTER_PRODUCT, {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const responseData = await response.json() as RegisterResponse;
+            
+            if (responseData.ok) {
+                setAlertType("success");
+                setAlertMessage("O produto foi registrado com sucesso.");
+                setShowAlert(true);
+            } else {
+                setAlertType("error");
+                
+                if (responseData.error.type === "internal") {
+                    throw responseData.error.message;
+                } else if (responseData.error.type === "invalid-data") {
+                    setAlertMessage("Os dados enviados são inválidos, tente novamente.");
+                    setShowAlert(true);
+                } else if (responseData.error.type === "validation") {
+                    for (const error of responseData.error.info) {
+                        setError(error.path[0] as keyof RegisterProductData, {
+                            message: error.message,
+                            type: error.code
+                        });
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error(error);
+            setAlertType("error");
+            setAlertMessage("Não foi possível proceder devido a um erro interno.");
+            setShowAlert(true);
+        }
+
+        setIsSubmitingRegister(false);
+    }
+    
     return (
         <div
             style={{
@@ -39,7 +100,7 @@ export function ProductRegister(): JSX.Element {
                     <Divider />
                     
                     <form
-                        onSubmit={handleSubmit(console.log)}
+                        onSubmit={handleSubmit(onSubmit)}
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -75,12 +136,12 @@ export function ProductRegister(): JSX.Element {
                             isRequired={true}
                             text={{
                                 label: "Preço unitário",
-                                error: errors.unitPrice?.message
+                                error: errors.price?.message
                             }}
                             props={{
                                 input: {
                                     type: "text",
-                                    ...register("unitPrice")
+                                    ...register("price")
                                 }
                             }}
                         />
@@ -102,6 +163,10 @@ export function ProductRegister(): JSX.Element {
                                 }
                             }}
                         />
+                        {
+                            showAlert
+                            && <Alert severity={alertType}>{alertMessage}</Alert>
+                        }
                         <Button
                             type="submit"
                             sx={{
@@ -109,8 +174,13 @@ export function ProductRegister(): JSX.Element {
                                 height: 40
                             }}
                             variant="outlined"
+                            disabled={isSubmitingRegister}
                         >
-                            Cadastrar    
+                            {
+                                isSubmitingRegister
+                                ? <CircularProgress size={25} />
+                                : "Cadastrar"
+                            }    
                         </Button>
                     </form>
                 </Paper>
