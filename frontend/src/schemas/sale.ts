@@ -1,15 +1,12 @@
 import { z } from "zod";
 
 export const registerSaleSchema = z.object({
-    name: z.string({
+    clientCode: z.coerce.number({
         required_error: "Este campo é obrigatório."
-    }).min(2, "Um nome deve conter no mínimo 2 caracteres."),
-    unitPrice: z.coerce.number({
+    }),
+    paymentMethod: z.coerce.number({
         required_error: "Este campo é obrigatório."
-    }).min(1, "O preço unitário deve ser maior que zero."),
-    amountAvailable: z.coerce.number({
-        required_error: "Este campo é obrigatório."
-    }).min(0, "A quantidade disponível deve ser maior ou igual a zero.")
+    }).min(1, "Método inválido").max(4, "Método inválido")
 });
 
 export type RegisterSaleData = z.infer<typeof registerSaleSchema>;

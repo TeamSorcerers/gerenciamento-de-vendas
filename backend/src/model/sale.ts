@@ -2,6 +2,5 @@
 export interface SaleModel {
     code: number,
     clientCode: number,
-    paymentMethod: number,
-    price: number
+    paymentMethod: number
 }

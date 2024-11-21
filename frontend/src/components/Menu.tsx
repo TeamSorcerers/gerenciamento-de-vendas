@@ -1,4 +1,4 @@
-import { PersonAdd, Inventory, Inventory2, AddShoppingCart, AddBox, PersonSearch, Description } from "@mui/icons-material";
+import { PersonAdd, Inventory, AddShoppingCart, AddBox, PersonSearch, Description } from "@mui/icons-material";
 import { Paper, MenuList, MenuItem, ListItemIcon, ListItemText, Divider } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -12,30 +12,30 @@ export function Menu() {
                     <ListItemIcon>
                         <PersonAdd fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Cadastrar cliente</ListItemText>
+                    <ListItemText>Adicionar cliente</ListItemText>
                 </MenuItem>
 
                 <MenuItem onClick={() => navigate('/register/product')}>
                     <ListItemIcon>
                         <AddBox fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Cadastrar produto</ListItemText>
+                    <ListItemText>Adicionar produto</ListItemText>
                 </MenuItem>
 
                 <MenuItem onClick={() => navigate('/register/sale')}>
                     <ListItemIcon>
                         <AddShoppingCart fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Cadastrar venda</ListItemText>
+                    <ListItemText>Iniciar venda</ListItemText>
                 </MenuItem>
 
                 <Divider />
 
-                <MenuItem onClick={() => navigate('/update/stock')}>
+                <MenuItem onClick={() => navigate('/view/stock')}>
                     <ListItemIcon>
                         <Inventory fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Atualizar estoque</ListItemText>
+                    <ListItemText>Estoque</ListItemText>
                 </MenuItem>
 
                 <Divider />
@@ -44,14 +44,7 @@ export function Menu() {
                     <ListItemIcon>
                         <PersonSearch fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Ver cliente</ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={() => navigate('/view/stock')}>
-                    <ListItemIcon>
-                        <Inventory2 fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Ver estoque</ListItemText>
+                    <ListItemText>Procurar cliente</ListItemText>
                 </MenuItem>
 
                 <MenuItem onClick={() => navigate('/view/report')}>

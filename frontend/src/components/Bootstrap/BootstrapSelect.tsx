@@ -9,7 +9,11 @@ const StyledInput = styled(Select)(inputStyleTheme);
 export interface IBootstrapSelect {
     id: string,
 
-    options: Record<string, number>,
+    options: {
+        label: string,
+        value: number,
+        disabled?: boolean
+    }[],
 
     text: {
         label: string,
@@ -83,9 +87,10 @@ export function BootstrapSelect({
                         id={id}
                         sx={{width: "100%", height: "100%"}}
                         disabled={isDisabled}
+                        defaultValue={options[0].value}
                     >
-                        {Object.entries(options).map((entry, key) => 
-                            <MenuItem value={entry[1]} key={key}>{entry[0]}</MenuItem>
+                        {options.map(
+                            (option, key) => <MenuItem disabled={option.disabled} value={option.value} key={key}>{option.label}</MenuItem>
                         )}
                     </StyledInput>
                 )

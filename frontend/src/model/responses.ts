@@ -19,8 +19,22 @@ export type RegisterResponse = {
 
 export type FetchAllClientsResponse = {
     name: string,
-    code: number
+    code: number,
+    phone: string,
 }[];
+
+export type FetchClientResponse = {
+    ok: true,
+    info: {
+        name: string,
+        code: number,
+        phone: string,
+        totalPurchase: number
+    }
+} | {
+    ok: false,
+    error: RegisterResponseError
+}
 
 export type FetchAllProductsResponse = {
     name: string,

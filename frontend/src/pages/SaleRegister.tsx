@@ -1,29 +1,30 @@
-import { Alert, Box, Button, CircularProgress, Divider, IconButton, List, ListItem, ListSubheader, Paper, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import { Menu } from "../components/Menu";
-import { BootstrapInput } from "../components/Bootstrap/BootstrapInput";
 import { useForm } from "react-hook-form";
-import { RegisterProductData, registerProductSchema } from "../schemas/product";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { GATEWAY_VIEW_ALL_CLIENT, GATEWAY_REGISTER_PRODUCT, GATEWAY_VIEW_ALL_PRODUCT } from "../gateways";
+import { GATEWAY_VIEW_ALL_CLIENT, GATEWAY_VIEW_ALL_PRODUCT, GATEWAY_REGISTER_SALE } from "../gateways";
 import { FetchAllClientsResponse, FetchAllProductsResponse, RegisterResponse } from "../model/responses";
 import { BootstrapSelect } from "../components/Bootstrap/BootstrapSelect";
-import { Delete } from "@mui/icons-material";
+import { RegisterSaleData, registerSaleSchema } from "../schemas/sale";
+import { CartModel } from "../model/cart";
+import { SaleCart } from "../components/SaleCart";
 
 export function SaleRegister(): JSX.Element {
     const { 
         register,
         handleSubmit,
         setError,
+        reset,
         formState: { errors }
-    } = useForm<RegisterProductData>({
-        resolver: zodResolver(registerProductSchema)
+    } = useForm<RegisterSaleData>({
+        resolver: zodResolver(registerSaleSchema)
     });
 
     const [clients, setClients] = useState<FetchAllClientsResponse>([]);
     const [products, setProducts] = useState<FetchAllProductsResponse>([]);
 
-    const [cart, setCart] = useState<{ code: number, amount: number }[]>([]);
+    const [cart, setCart] = useState<CartModel>([]);
 
     const [showAlert, setShowAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
@@ -63,8 +64,15 @@ export function SaleRegister(): JSX.Element {
         fetchData();
     }, []);
 
-    const onSubmit = async (data: RegisterProductData) => {
+    const onSubmit = async (data: RegisterSaleData) => {
         if (isSubmitingRegister) {
+            return;
+        }
+
+        if (cart.length === 0) {
+            setAlertType("error");
+            setAlertMessage("O carrinho não pode estar vazio.");  
+            setShowAlert(true);
             return;
         }
 
@@ -72,9 +80,9 @@ export function SaleRegister(): JSX.Element {
         setIsSubmitingRegister(true);
 
         try {
-            const response = await fetch(GATEWAY_REGISTER_PRODUCT, {
+            const response = await fetch(GATEWAY_REGISTER_SALE, {
                 method: "POST",
-                body: JSON.stringify(data),
+                body: JSON.stringify({...data, cart}),
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -84,8 +92,20 @@ export function SaleRegister(): JSX.Element {
             
             if (responseData.ok) {
                 setAlertType("success");
-                setAlertMessage("O produto foi registrado com sucesso.");
+                setAlertMessage("A venda foi registrada com sucesso.");
                 setShowAlert(true);
+                reset();
+                setCart([]);
+
+                try {
+                    const response = await fetch(GATEWAY_VIEW_ALL_PRODUCT);
+                    setProducts(await response.json());
+                } catch (error) {
+                    console.error(error);
+                    setAlertType("error");
+                    setAlertMessage("Não foi possível proceder devido a um erro interno.");
+                    setShowAlert(true);
+                }
             } else {
                 setAlertType("error");
                 
@@ -96,7 +116,7 @@ export function SaleRegister(): JSX.Element {
                     setShowAlert(true);
                 } else if (responseData.error.type === "validation") {
                     for (const error of responseData.error.info) {
-                        setError(error.path[0] as keyof RegisterProductData, {
+                        setError(error.path[0] as keyof RegisterSaleData, {
                             message: error.message,
                             type: error.code
                         });
@@ -112,6 +132,62 @@ export function SaleRegister(): JSX.Element {
         }
 
         setIsSubmitingRegister(false);
+    }
+
+    if (clients.length === 0) {
+        return (
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    width: '100%',
+                    height: '100%',
+                    gap: 8
+                }}
+            >
+                <Menu />
+                <Box sx={{
+                    width: 500,
+                    minHeight: 280,
+                    maxHeight: 300,
+                    marginTop: 0.5,
+                }}>
+                    <Paper>
+                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', padding: 1, textAlign: 'justify' }}>
+                            <Typography textAlign="justify">Não há clientes cadastrados para poder vender.</Typography>
+                        </Box>
+                    </Paper>
+                </Box>
+            </div>
+        );
+    }
+
+    if (products.length === 0) {
+        return (
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    width: '100%',
+                    height: '100%',
+                    gap: 8
+                }}
+            >
+                <Menu />
+                <Box sx={{
+                    width: 500,
+                    minHeight: 280,
+                    maxHeight: 300,
+                    marginTop: 0.5,
+                }}>
+                    <Paper>
+                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', padding: 1, textAlign: 'justify' }}>
+                            <Typography textAlign="justify">Não há produtos cadastrados para poder vender.</Typography>
+                        </Box>
+                    </Paper>
+                </Box>
+            </div>
+        );
     }
     
     return (
@@ -137,6 +213,10 @@ export function SaleRegister(): JSX.Element {
                     </Box>
 
                     <Divider />
+
+                    <SaleCart products={products} setCart={setCart} cart={cart} />
+
+                    <Divider />
                     
                     <form
                         onSubmit={handleSubmit(onSubmit)}
@@ -148,141 +228,64 @@ export function SaleRegister(): JSX.Element {
                             padding: 10,
                         }}
                     >
-                        <List
-                            sx={{ width: 450, bgcolor: 'background.paper' }}
-                            component="nav"
-                            subheader={
-                                <ListSubheader component="div" id="nested-list-subheader">
-                                    Carrinho
-                                </ListSubheader>
-                            }
-                        >
-                            <ListItem
-                                secondaryAction={
-                                    <IconButton edge="end" aria-label="delete">
-                                        <Delete />
-                                    </IconButton>
-                                }
-
-                                sx={{
-                                    display: "flex",
-                                    flexDirection: "row",
-                                    justifyContent: "space-between"
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        flexDirection: "row",
-                                        gap: 2
-                                    }}
-                                >
-                                    <Typography fontSize={14} paddingTop={0.10}>4x</Typography>
-                                    <Typography>Arroz</Typography>
-                                </Box>
-                                <Typography>R$ 16,99</Typography>
-                            </ListItem>
-                            <Divider />
-                            <ListItem
-                                sx={{
-                                    display: "flex",
-                                    flexDirection: "row",
-                                    justifyContent: "space-between",
-                                    paddingTop: 2
-                                }}
-                            >
-                                <Typography>Total</Typography>
-                                <Typography>R$ 16,99</Typography>
-                            </ListItem>
-                        </List>
-
-                        <BootstrapSelect
-                            id="ProductName"
-                            size={{
-                                width: 450,
-                                height: 40
-                            }}
-                            options={Object.fromEntries(products.map(product => [`${product.code}. ${product.name} - R$ ${product.price} - Qtd. Disponível: ${product.amountAvailable}`, product.code]))}
-                            isRequired={true}
-                            text={{
-                                label: "Produto",
-                                error: errors.name?.message
-                            }}
-                            props={{
-                                input: {
-                                    type: "text",
-                                    ...register("name")
-                                }
-                            }}
-                        />
-
-                        <BootstrapInput
-                            id="Amount"
-                            size={{
-                                width: 450,
-                                height: 40
-                            }}
-                            isRequired={true}
-                            text={{
-                                label: "Quantidade",
-                                error: errors.amountAvailable?.message
-                            }}
-                            props={{
-                                input: {
-                                    type: "number",
-                                    ...register("amountAvailable")
-                                }
-                            }}
-                        />
-
-                        <Button
-                            type="button"
-                            sx={{
-                                width: 450,
-                                height: 40
-                            }}
-                            variant="outlined"
-                        >
-                            Adicionar ao carrinho
-                        </Button>
-
-                        <Divider sx={{ width: '100%' }} />
-
                         <BootstrapSelect
                             id="ClientName"
                             size={{
                                 width: 450,
                                 height: 40
                             }}
-                            options={Object.fromEntries(clients.map(client => [`${client.code} - ${client.name}`, client.code]))}
+                            options={
+                                clients.map(client => ({
+                                    label: `${client.code}. ${client.name}`,
+                                    value: client.code
+                                }))
+                            }
                             isRequired={true}
                             text={{
                                 label: "Nome do cliente",
-                                error: errors.name?.message
+                                error: errors.clientCode?.message
                             }}
                             props={{
                                 input: {
                                     type: "text",
-                                    ...register("name")
+                                    ...register("clientCode")
                                 }
                             }}
                         />
+
                         <BootstrapSelect
                             id="PaymentMethod"
                             size={{
                                 width: 450,
                                 height: 40
                             }}
-                            options={Object.fromEntries(clients.map(client => [`${client.code} - ${client.name}`, client.code]))}
+                            options={[
+                                {
+                                    label: "Dinheiro",
+                                    value: 1
+                                },
+                                {
+                                    label: "Pix",
+                                    value: 2
+                                },
+                                {
+                                    label: "Cartão de Débito",
+                                    value: 3
+                                },
+                                {
+                                    label: "Cartão de Crédito",
+                                    value: 4
+                                },
+                            ]}
                             isRequired={true}
                             text={{
                                 label: "Método de pagamento",
-                                error: errors.name?.message
+                                error: errors.paymentMethod?.message
                             }}
                             props={{
                                 input: {
                                     type: "text",
-                                    ...register("name")
+                                    ...register("paymentMethod")
                                 }
                             }}
                         />
@@ -302,7 +305,7 @@ export function SaleRegister(): JSX.Element {
                             {
                                 isSubmitingRegister
                                 ? <CircularProgress size={25} />
-                                : "Cadastrar"
+                                : "Vender"
                             }    
                         </Button>
                     </form>

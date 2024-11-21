@@ -8,6 +8,9 @@ import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import './assets/globals.css';
 import { ProductRegister } from './pages/ProductRegister.tsx';
 import { SaleRegister } from './pages/SaleRegister.tsx';
+import { ViewStock } from './pages/ViewStock.tsx';
+import { SearchClient } from './pages/SearchClient.tsx';
+import { ViewReport } from './pages/ViewReport.tsx';
 
 const darkTheme = createTheme({
   palette: {
@@ -31,6 +34,18 @@ const router = createBrowserRouter([
   {
     path: "/register/sale",
     element: <SaleRegister />
+  },
+  {
+    path: "/view/stock",
+    element: <ViewStock />
+  },
+  {
+    path: "/view/client",
+    element: <SearchClient />
+  },
+  {
+    path: "/view/report",
+    element: <ViewReport />
   }
 ]);
 
